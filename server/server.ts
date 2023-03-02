@@ -1,19 +1,16 @@
 import express from 'express';
-import { pool } from './db';
 
 const PORT = process.env.PORT || 3001;
 
 const app = express();
 
-// get all todos
+// get all tasks
 app.get('/task', async (req, res) => {
-  try {
-    const tasks = await pool.query('SELECT * FROM todo');
-    res.json(tasks.rows);
-  }
-  catch (error) {
-    console.log(error);
-  }
+  console.log('GET /task')
+});
+
+app.get('/', (req, res) => {
+  res.send('Hello World');
 });
 
 app.listen(PORT, () => {
