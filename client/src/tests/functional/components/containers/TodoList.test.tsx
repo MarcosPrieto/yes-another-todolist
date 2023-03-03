@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, cleanup } from '@testing-library/react';
-import '@testing-library/jest-dom';
 
 // Components
 import { TodoList } from '../../../../components/containers/TodoList/TodoList';
