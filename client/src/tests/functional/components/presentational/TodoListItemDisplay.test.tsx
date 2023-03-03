@@ -39,7 +39,7 @@ describe(`<TodoListItemDisplay/>`, () => {
     const spanTaskName = screen.getByText('foo') as HTMLSpanElement;
 
     // assert
-    expect(spanTaskName.classList.contains('itemDisplay__task--crossed')).toBe(true);
+    expect(spanTaskName).toHaveClass('itemDisplay__task--crossed', { exact: false });
   });
 
   it(`should not display the crossed style on the task name when props.taskDone is false`, () => {
@@ -51,7 +51,7 @@ describe(`<TodoListItemDisplay/>`, () => {
     const spanTaskName = screen.getByText('foo') as HTMLSpanElement;
 
     // assert
-    expect(spanTaskName.classList.contains('itemDisplay__task--crossed')).toBe(false);
+    expect(spanTaskName).not.toHaveClass('itemDisplay__task--crossed', { exact: false });
   });
 
   it(`should trigger onTaskChangeStatus when the checkbox changes`, () => {
