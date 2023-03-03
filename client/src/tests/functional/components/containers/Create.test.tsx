@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, cleanup, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Provider } from 'react-redux';
 import createSagaMiddleware from 'redux-saga';
 import configureStore, { MockStoreEnhanced } from 'redux-mock-store';

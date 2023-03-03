@@ -1,3 +1,4 @@
+import { describe, it, beforeEach, afterEach, expect } from 'vitest';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
@@ -29,23 +30,13 @@ describe('axios service', () => {
       expect(result.data).toBe('foo');
     }, 30000);
 
-    it('should return an error code when fails less than 5 times and the last time is an error', (done) => {
+    it('should return an error code when fails less than 5 times and the last time is an error', async () => {
       // arrange
       mockAxios.onGet().replyOnce(500)
-        .onGet().replyOnce(414);
+        .onGet().replyOnce(500);
 
-      // act
-      getAxiosApiInstance('').get('/foo')
-        .then(() => {
-          // assert
-          expect(false).toBeTruthy();
-          done();
-        })
-        .catch(() => {
-          // assert
-          expect(true).toBeTruthy();
-          done();
-        });
+      // act, assert
+      await expect(getAxiosApiInstance('').get('/foo')).rejects.toBe('[Error: Request failed with status code 404]');
     }, 30000);
 
     it('should return an error code when fails more than 5 times and the 5th time is an error code', (done) => {
@@ -90,7 +81,7 @@ describe('axios service', () => {
         });
     }, 30000);
 
-    it('should not retry when status is smaller than 400', (done) => {
+    it('should not retry when status is smaller than 400', () => new Promise((done) => {
       // arrange
       mockAxios.onGet().replyOnce(300)
         .onGet().replyOnce(200);
@@ -107,6 +98,6 @@ describe('axios service', () => {
           expect(true).toBeTruthy();
           done();
         });
-    }, 30000);
+    }), 30000);
   });
 });

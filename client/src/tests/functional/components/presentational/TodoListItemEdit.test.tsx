@@ -1,6 +1,6 @@
 import React from 'react';
+import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
 import { render, cleanup, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 
 // Components
 import { TodoListItemEdit } from '../../../../components/presentational/TodoList/TodoListItem/TodoListItemEdit/TodoListItemEdit';
@@ -17,8 +17,8 @@ describe('<TodoListItemEdit/>', () => {
       taskName: 'Paint the wall',
       taskPriority: 0,
       taskDone: false,
-      onCancelEdit: jest.fn(),
-      onEdit: jest.fn(),
+      onCancelEdit: vi.fn(),
+      onEdit: vi.fn(),
     };
   });
 
@@ -34,17 +34,17 @@ describe('<TodoListItemEdit/>', () => {
     // arrange
     const props: Partial<Props> = {taskId: '1', taskName: 'foo', taskPriority: 1, taskDone: false};
 
-    const renderResult = renderUI(props);
-    const buttonEdit = renderResult.container.querySelector('button:nth-child(2)') as HTMLButtonElement;
+    const { container } = renderUI(props);
+    const buttonEdit = container.querySelector('button:nth-child(2)') as HTMLButtonElement;
 
-    const nameInput = renderResult.container.querySelector('input') as HTMLInputElement;
+    const nameInput = container.querySelector('input') as HTMLInputElement;
     fireEvent.change(nameInput, {target: {value: 'foo modified'}});
 
-    const prioritySelect = renderResult.container.querySelector('select') as HTMLSelectElement;
+    const prioritySelect = container.querySelector('select') as HTMLSelectElement;
     fireEvent.change(prioritySelect, {target: {value: 3}});
 
     // act
-    buttonEdit.click();
+    fireEvent.click(buttonEdit);
 
     // assert
     expect(baseProps.onEdit).toHaveBeenCalledWith({
@@ -59,16 +59,16 @@ describe('<TodoListItemEdit/>', () => {
     // arrange
     const props: Partial<Props> = {taskName: ''};
 
-    const renderResult = renderUI(props);
-    const buttonEdit = renderResult.container.querySelector('button:nth-child(2)') as HTMLButtonElement;
+    const { container } = renderUI(props);
+    const buttonEdit = container.querySelector('button:nth-child(2)') as HTMLButtonElement;
 
     // act
     buttonEdit.click();
 
-    const nameInput = renderResult.container.querySelector('input') as HTMLInputElement;
+    const nameInput = container.querySelector('input') as HTMLInputElement;
 
     // assert
-    expect(nameInput).toHaveClass('itemEdit--danger');
+    expect(nameInput.classList.contains('itemEdit--danger')).toBe(true);
     expect(baseProps.onEdit).not.toHaveBeenCalled();
   });
 
@@ -76,16 +76,16 @@ describe('<TodoListItemEdit/>', () => {
     // arrange
     const props: Partial<Props> = {taskDone: false};
 
-    const renderResult = renderUI(props);
-    const buttonCancelEdit = renderResult.container.querySelector('button:nth-child(1)') as HTMLButtonElement;
+    const { container } = renderUI(props);
+    const buttonCancelEdit = container.querySelector('button:nth-child(1)') as HTMLButtonElement;
 
     // act
     buttonCancelEdit.click();
 
-    const nameInput = renderResult.container.querySelector('input') as HTMLInputElement;
+    const nameInput = container.querySelector('input') as HTMLInputElement;
 
     // assert
-    expect(nameInput).not.toHaveClass('danger');
+    expect(nameInput.classList.contains('itemEdit--danger')).toBe(false);
     expect(baseProps.onCancelEdit).toHaveBeenCalledTimes(1);
   });
 });

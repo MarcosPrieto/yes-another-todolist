@@ -1,13 +1,14 @@
+import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
+
 import React from 'react';
-import { render, cleanup } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { render, cleanup, screen, fireEvent } from '@testing-library/react';
 
 // Components
 import { Button } from '../../../../components/presentational/UI/Button/Button';
 
-type Props = React.ComponentProps<typeof Button>;
+type Props = React.ComponentPropsWithoutRef<typeof Button>;
 
-describe(`<Button/>`, () => {
+describe('<Button/>', () => {
   let baseProps: Props;
 
   beforeEach(() => {
@@ -15,7 +16,7 @@ describe(`<Button/>`, () => {
       size: 'small',
       displayText: '',
       buttonStyle: 'default',
-      onClick: jest.fn(),
+      onClick: vi.fn(),
     };
   });
 
@@ -23,11 +24,9 @@ describe(`<Button/>`, () => {
     return render(<Button {...baseProps} {...props} />);
   };
 
-  afterEach(() => {
-    cleanup();
-  });
+  afterEach(() => cleanup());
 
-  it(`should display the icon when props.iconName is not undefined`, () => {
+  it('should display the icon when props.iconName is not undefined', () => {
     // arrange
     const props: Partial<Props> = { iconName: 'save'};
 
@@ -39,7 +38,7 @@ describe(`<Button/>`, () => {
     expect(svg).not.toBeNull();
   });
 
-  it(`should not display the icon when props.iconName is undefined`, () => {
+  it('should not display the icon when props.iconName is undefined', () => {
     // arrange
     const props: Partial<Props> = {iconName: undefined};
 
@@ -49,5 +48,20 @@ describe(`<Button/>`, () => {
 
     // assert
     expect(svg).toBeNull();
+  });
+
+  it('should trigger onClick when button is clicked', () => {
+    // arrange
+    const props: Partial<Props> = { onClick: vi.fn() };
+
+    renderUI(props);
+
+    const button = screen.getByRole('button') as HTMLButtonElement;
+
+    // act
+    fireEvent.click(button);
+
+    // assert
+    expect(props.onClick).toHaveBeenCalledTimes(1);
   });
 });
