@@ -1,8 +1,14 @@
 import React from 'react';
-import { render, cleanup } from '@testing-library/react';
+import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
+import { render, cleanup, screen, fireEvent, within, waitFor } from '@testing-library/react';
 
 // Components
 import { TodoList } from '../../../../components/containers/TodoList/TodoList';
+
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
+}));
 
 type Props = React.ComponentProps<typeof TodoList>;
 
@@ -19,11 +25,11 @@ describe('<TodoList/>', () => {
         { id: '5', displayName: 'Learn to play ukelele', priority: 1, done: false },
         { id: '6', displayName: 'Sell ukelele', priority: 1, done: true },
       ],
-      onFetchTasks: jest.fn(),
-      onTaskChangeStatus: jest.fn(),
-      onSetTaskEditId: jest.fn(),
-      onEditTask: jest.fn(),
-      onDeleteTask: jest.fn()
+      onFetchTasks: vi.fn(),
+      onTaskChangeStatus: vi.fn(),
+      onSetTaskEditId: vi.fn(),
+      onEditTask: vi.fn(),
+      onDeleteTask: vi.fn()
     };
   });
 
@@ -32,16 +38,15 @@ describe('<TodoList/>', () => {
   };
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     cleanup();
   });
 
   it('should sort the task, displaying first the task with more priority (lowest number), then the lowest, and at the bottom the task marked as done', async () => {
-    // arrange
-    // act
-    const renderResult = renderUI();
+    // arrange, act
+    renderUI();
 
-    const todoItemList = await renderResult.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
+    const todoItemList = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
     // assert
     expect(todoItemList[0].querySelector('span')).toHaveTextContent('Learn to play ukelele');
@@ -54,16 +59,16 @@ describe('<TodoList/>', () => {
 
   it('should reorder the list when a task is marked as done/undone', async () => {
     // arrange
-    const renderResult = renderUI();
+    renderUI();
 
-    const todoItemList = await renderResult.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
+    const todoItemList = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
     const buyUkeleleCheckbox = todoItemList[4].querySelector('input[type="checkbox"]') as HTMLInputElement;
 
     // act
-    buyUkeleleCheckbox.click();
+    fireEvent.click(buyUkeleleCheckbox);
 
-    const updatedTodoItemList = await renderResult.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
+    const updatedTodoItemList = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
     // assert
     expect(updatedTodoItemList[0].querySelector('span')).toHaveTextContent('Buy an ukelele');
@@ -106,26 +111,26 @@ describe('<TodoList/>', () => {
 
   it('should trigger onTaskChangeStatus when a task is marked as done/undone', async () => {
     // arrange
-    const renderResult = renderUI();
+    renderUI();
 
-    const todoItemList = await renderResult.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
+    const todoItemList = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
-    const lastTaskCheckBox = todoItemList[5].querySelector('input[type="checkbox"]') as HTMLInputElement;
+    const lastTaskCheckBox = within(todoItemList[5]).getByRole('checkbox') as HTMLInputElement;
 
     // act
     lastTaskCheckBox.click();
 
     // assert
-    expect(baseProps.onTaskChangeStatus).toHaveBeenCalledWith('6', false);
+    await waitFor(() => expect(baseProps.onTaskChangeStatus).toHaveBeenCalledWith('6', false));
   });
 
   it('should trigger onSetTaskEditId when button edit is clicked on TodoListItemDisplay', async () => {
     // arrange
-    const renderResult = renderUI();
+    renderUI();
 
-    const todoItemList = await renderResult.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
+    const todoItemList = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
-    const buttonEdit = todoItemList[3].querySelector('button:nth-child(1)') as HTMLButtonElement;
+    const buttonEdit = within(todoItemList[3]). as HTMLButtonElement;
 
     // act
     buttonEdit.click();
@@ -153,14 +158,14 @@ describe('<TodoList/>', () => {
     // arrange
     const props: Partial<Props> = { editTaskId: '4' };
 
-    const renderResult = renderUI(props);
+    renderUI(props);
 
-    const todoItemEdit = await renderResult.findAllByTestId('todoItemEdit') as HTMLDivElement[];
+    const todoItemEdit = await screen.findAllByTestId('todoItemEdit') as HTMLDivElement[];
 
     const buttonDelete = todoItemEdit[0].querySelector('button:nth-child(1)') as HTMLButtonElement;
 
     // act
-    buttonDelete.click();
+    fireEvent.click(buttonDelete);
 
     // assert
     expect(baseProps.onSetTaskEditId).toHaveBeenCalledWith(undefined);
@@ -170,16 +175,16 @@ describe('<TodoList/>', () => {
     // arrange
     const props: Partial<Props> = { editTaskId: '4' };
 
-    const renderResult = renderUI(props);
+    renderUI(props);
 
-    const todoItemEdit = await renderResult.findAllByTestId('todoItemEdit') as HTMLDivElement[];
+    const todoItemEdit = await screen.findAllByTestId('todoItemEdit') as HTMLDivElement[];
 
-    const buttonSave = todoItemEdit[0].querySelector('button:nth-child(2)') as HTMLButtonElement;
+    const buttonSave = within(todoItemEdit[0]).getByRole('button', {name: /Save/i}) as HTMLButtonElement;
 
     // act
-    buttonSave.click();
+    fireEvent.click(buttonSave);
 
     // assert
-    expect(baseProps.onEditTask).toHaveBeenCalledTimes(1);
+    expect(baseProps.onEditTask).toHaveBeenNthCalledWith(expect.objectContaining({id: '4'}));
   });
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
-import { render, cleanup, fireEvent } from '@testing-library/react';
+import { render, cleanup, fireEvent, screen } from '@testing-library/react';
 
 // Components
 import { TodoListItemEdit } from '../../../../components/presentational/TodoList/TodoListItem/TodoListItemEdit/TodoListItemEdit';
@@ -59,16 +59,16 @@ describe('<TodoListItemEdit/>', () => {
     // arrange
     const props: Partial<Props> = {taskName: ''};
 
-    const { container } = renderUI(props);
-    const buttonEdit = container.querySelector('button:nth-child(2)') as HTMLButtonElement;
+    renderUI(props);
+    const buttonEdit = screen.getByText('Edit') as HTMLButtonElement;
 
     // act
-    buttonEdit.click();
+    fireEvent.click(buttonEdit);
 
-    const nameInput = container.querySelector('input') as HTMLInputElement;
+    const nameInput = screen.getByRole('textbox') as HTMLInputElement;
 
     // assert
-    expect(nameInput.classList.contains('itemEdit--danger')).toBe(true);
+    expect(nameInput).toHaveClass('itemEdit--danger');
     expect(baseProps.onEdit).not.toHaveBeenCalled();
   });
 

@@ -77,7 +77,6 @@ export const Create: React.FC<Props> = (props: Props) => {
                 Task:
               </label>
               <input
-                data-testid="createTask_inputName"
                 onBlur={() => setErrorOnName(false)}
                 onChange={(e) => setName(e.target.value)}
                 value={name}
@@ -89,7 +88,6 @@ export const Create: React.FC<Props> = (props: Props) => {
                 Priority:
               </label>
               <select
-                data-testid="createTask_prioritySelect"
                 onChange={(e) => priorityChangeHandler(e)}
                 value={priority}>
                 {PRIORITY_LEVELS.map((priorityLevel) => {
@@ -105,7 +103,7 @@ export const Create: React.FC<Props> = (props: Props) => {
               buttonStyle='dismiss'
               iconName='arrow-left'
               size='big'
-              onClick={cancelHandler} />
+              onClick={cancelHandler} />+
             <Button
               tooltip='Save changes and go to task list'
               displayText='Save'
