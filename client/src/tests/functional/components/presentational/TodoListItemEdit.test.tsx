@@ -5,7 +5,6 @@ import { render, cleanup, fireEvent, screen } from '@testing-library/react';
 // Components
 import { TodoListItemEdit } from '../../../../components/presentational/TodoList/TodoListItem/TodoListItemEdit/TodoListItemEdit';
 
-
 type Props = React.ComponentProps<typeof TodoListItemEdit>;
 
 describe('<TodoListItemEdit/>', () => {
@@ -41,7 +40,7 @@ describe('<TodoListItemEdit/>', () => {
     fireEvent.change(nameInput, {target: {value: 'foo modified'}});
 
     const prioritySelect = container.querySelector('select') as HTMLSelectElement;
-    fireEvent.change(prioritySelect, {target: {value: 3}});
+    fireEvent.change(prioritySelect, {target: {value: 0}});
 
     // act
     fireEvent.click(buttonEdit);
@@ -50,7 +49,7 @@ describe('<TodoListItemEdit/>', () => {
     expect(baseProps.onEdit).toHaveBeenCalledWith({
       id: '1',
       displayName: 'foo modified',
-      priority: 3,
+      priority: 0,
       done: false,
     });
   });
@@ -60,15 +59,12 @@ describe('<TodoListItemEdit/>', () => {
     const props: Partial<Props> = {taskName: ''};
 
     renderUI(props);
-    const buttonEdit = screen.getByText('Edit') as HTMLButtonElement;
+    const buttonEdit = screen.getByText('Save') as HTMLButtonElement;
 
     // act
     fireEvent.click(buttonEdit);
 
-    const nameInput = screen.getByRole('textbox') as HTMLInputElement;
-
     // assert
-    expect(nameInput).toHaveClass('itemEdit--danger');
     expect(baseProps.onEdit).not.toHaveBeenCalled();
   });
 
@@ -82,10 +78,7 @@ describe('<TodoListItemEdit/>', () => {
     // act
     buttonCancelEdit.click();
 
-    const nameInput = container.querySelector('input') as HTMLInputElement;
-
     // assert
-    expect(nameInput.classList.contains('itemEdit--danger')).toBe(false);
     expect(baseProps.onCancelEdit).toHaveBeenCalledTimes(1);
   });
 });

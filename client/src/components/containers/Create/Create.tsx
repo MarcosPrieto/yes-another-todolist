@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -65,7 +65,7 @@ export const Create: React.FC<Props> = (props: Props) => {
   };
 
   return (
-    <React.Fragment>
+    <>
       <header className={styles.createTask__header}>
         <h1>Create task</h1>
       </header>
@@ -101,20 +101,20 @@ export const Create: React.FC<Props> = (props: Props) => {
               tooltip='Cancel changes and go to task list'
               displayText='Cancel'
               buttonStyle='dismiss'
-              iconName='arrow-left'
+              iconName='material-symbols:arrow-back'
               size='big'
               onClick={cancelHandler} />+
             <Button
               tooltip='Save changes and go to task list'
               displayText='Save'
               buttonStyle='add'
-              iconName='save'
+              iconName='material-symbols:save'
               size='big'
               onClick={saveHandler} />
           </div>
         </section>
       </main>
-    </React.Fragment>
+    </>
   );
 };
 

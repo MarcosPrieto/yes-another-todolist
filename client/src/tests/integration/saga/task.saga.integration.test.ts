@@ -1,4 +1,4 @@
-import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
+import { describe, it, beforeEach, afterEach, expect } from 'vitest';
 
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';

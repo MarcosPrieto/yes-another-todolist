@@ -82,13 +82,13 @@ describe('Create', () => {
       const options = screen.getByRole('combobox').querySelectorAll('option');
 
       // assert
-      expect(options[0]).toHaveTextContent('First');
-      expect(options[1]).toHaveTextContent('Second');
+      expect(options[0].textContent).toBe('First');
+      expect(options[1].textContent).toBe('Second');
     });
 
     it(`should call to save prop when clicking on save and the form is valid`, async () => {
       // arrange
-      const { container } = renderUI();
+      renderUI();
 
       const createTask: Task = {
         id: NEW_TASK_ID,
@@ -107,10 +107,8 @@ describe('Create', () => {
       // act
       saveButton.click();
 
-      console.log(container.innerHTML);
-
       // assert
-      await waitFor(() => expect(todoNameInput).not.toHaveClass('danger'));
+      expect(Array.from(todoNameInput.classList).find(f => f.includes('danger'))).toBeFalsy();
       expect(baseProps.onSave).toHaveBeenCalledWith(createTask);
       expect(mockNavigate).toHaveBeenCalledWith('/todolist');
     });
