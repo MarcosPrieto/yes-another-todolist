@@ -24,18 +24,21 @@ describe('<Button/>', () => {
     return render(<Button {...baseProps} {...props} />);
   };
 
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+  });
 
   it('should display the icon when props.iconName is not undefined', () => {
     // arrange
-    const props: Partial<Props> = { iconName: 'save'};
+    const props: Partial<Props> = { iconName: 'material-symbols:save'};
 
     // act
-    const renderResult = renderUI(props);
-    const svg = renderResult.container.querySelector('svg') as SVGElement;
+    renderUI(props);
+
+    const imgWrapper = screen.getByRole('img');
 
     // assert
-    expect(svg).not.toBeNull();
+    expect(imgWrapper).not.toBeNull();
   });
 
   it('should not display the icon when props.iconName is undefined', () => {
@@ -43,11 +46,12 @@ describe('<Button/>', () => {
     const props: Partial<Props> = {iconName: undefined};
 
     // act
-    const renderResult = renderUI(props);
-    const svg = renderResult.container.querySelector('svg') as SVGElement;
+    renderUI(props);
+
+    const imgWrapper = screen.queryByRole('img') as HTMLSpanElement;
 
     // assert
-    expect(svg).toBeNull();
+    expect(imgWrapper).toBeNull();
   });
 
   it('should trigger onClick when button is clicked', () => {

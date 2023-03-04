@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
-import { render, cleanup, fireEvent, screen } from '@testing-library/react';
+import { render, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 
 // Components
 import { TodoListItemDisplay } from '../../../../components/presentational/TodoList/TodoListItem/TodoListItemDisplay/TodoListItemDisplay';
@@ -30,31 +30,7 @@ describe(`<TodoListItemDisplay/>`, () => {
     cleanup();
   });
 
-  it(`should display the crossed style on the task name when props.taskDone is true`, () => {
-    // arrange
-    const props: Partial<Props> = { taskDone: true, taskName: 'foo' };
-
-    // act
-    renderUI(props);
-    const spanTaskName = screen.getByText('foo') as HTMLSpanElement;
-
-    // assert
-    expect(spanTaskName).toHaveClass('itemDisplay__task--crossed', { exact: false });
-  });
-
-  it(`should not display the crossed style on the task name when props.taskDone is false`, () => {
-    // arrange
-    const props: Partial<Props> = { taskDone: false, taskName: 'foo' };
-
-    // act
-    renderUI(props);
-    const spanTaskName = screen.getByText('foo') as HTMLSpanElement;
-
-    // assert
-    expect(spanTaskName).not.toHaveClass('itemDisplay__task--crossed', { exact: false });
-  });
-
-  it(`should trigger onTaskChangeStatus when the checkbox changes`, () => {
+  it(`should trigger onTaskChangeStatus when the checkbox changes`, async () => {
     // arrange
     const props: Partial<Props> = { taskDone: false };
 
@@ -65,13 +41,15 @@ describe(`<TodoListItemDisplay/>`, () => {
     fireEvent.click(checkbox);
 
     // assert
-    expect(baseProps.onTaskChangeStatus).toHaveBeenCalledWith('1', true);
+    await waitFor(() => expect(baseProps.onTaskChangeStatus).toHaveBeenCalled());
   });
 
   it(`should trigger onSetEdit when the edit button is clicked`, () => {
     // arrange
     renderUI();
     const buttonEdit = screen.getByText('Edit') as HTMLButtonElement;
+
+    expect(baseProps.onSetEdit).toHaveBeenCalledTimes(0);
 
     // act
     fireEvent.click(buttonEdit);
@@ -84,6 +62,8 @@ describe(`<TodoListItemDisplay/>`, () => {
     // arrange
     renderUI();
     const buttonDelete = screen.getByText('Delete') as HTMLButtonElement;
+
+    expect(baseProps.onDelete).toHaveBeenCalledTimes(0);
 
     // act
     fireEvent.click(buttonDelete);

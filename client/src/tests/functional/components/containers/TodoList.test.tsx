@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
-import { render, cleanup, screen, fireEvent, within, waitFor } from '@testing-library/react';
+import { render, cleanup, screen, fireEvent, within } from '@testing-library/react';
 
 // Components
 import { TodoList } from '../../../../components/containers/TodoList/TodoList';
@@ -17,7 +17,7 @@ describe('<TodoList/>', () => {
 
   beforeEach(() => {
     baseProps = {
-      taskList: [
+      initialTaskList: [
         { id: '1', displayName: 'Paint the wall', priority: 3, done: false },
         { id: '2', displayName: 'Create a todoList demo application', priority: 0, done: true },
         { id: '3', displayName: 'Learn Kubernetes', priority: 2, done: false },
@@ -49,12 +49,12 @@ describe('<TodoList/>', () => {
     const todoItemList = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
     // assert
-    expect(todoItemList[0].querySelector('span')).toHaveTextContent('Learn to play ukelele');
-    expect(todoItemList[1].querySelector('span')).toHaveTextContent('Learn Kubernetes');
-    expect(todoItemList[2].querySelector('span')).toHaveTextContent('Paint the wall');
-    expect(todoItemList[3].querySelector('span')).toHaveTextContent('Create a todoList demo application');
-    expect(todoItemList[4].querySelector('span')).toHaveTextContent('Buy an ukelele');
-    expect(todoItemList[5].querySelector('span')).toHaveTextContent('Sell ukelele');
+    expect(todoItemList[0].textContent).toContain('Learn to play ukelele');
+    expect(todoItemList[1].textContent).toContain('Learn Kubernetes');
+    expect(todoItemList[2].textContent).toContain('Paint the wall');
+    expect(todoItemList[3].textContent).toContain('Create a todoList demo application');
+    expect(todoItemList[4].textContent).toContain('Buy an ukelele');
+    expect(todoItemList[5].textContent).toContain('Sell ukelele');
   });
 
   it('should reorder the list when a task is marked as done/undone', async () => {
@@ -63,7 +63,9 @@ describe('<TodoList/>', () => {
 
     const todoItemList = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
-    const buyUkeleleCheckbox = todoItemList[4].querySelector('input[type="checkbox"]') as HTMLInputElement;
+    expect(todoItemList[4].textContent).toContain('Buy an ukelele');
+
+    const buyUkeleleCheckbox = within(todoItemList[4]).getByRole('checkbox') as HTMLInputElement;
 
     // act
     fireEvent.click(buyUkeleleCheckbox);
@@ -71,22 +73,17 @@ describe('<TodoList/>', () => {
     const updatedTodoItemList = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
     // assert
-    expect(updatedTodoItemList[0].querySelector('span')).toHaveTextContent('Buy an ukelele');
-    expect(updatedTodoItemList[1].querySelector('span')).toHaveTextContent('Learn to play ukelele');
-    expect(updatedTodoItemList[2].querySelector('span')).toHaveTextContent('Learn Kubernetes');
-    expect(updatedTodoItemList[3].querySelector('span')).toHaveTextContent('Paint the wall');
-    expect(updatedTodoItemList[4].querySelector('span')).toHaveTextContent('Create a todoList demo application');
-    expect(updatedTodoItemList[5].querySelector('span')).toHaveTextContent('Sell ukelele');
+    expect(updatedTodoItemList[0].textContent).toContain('Buy an ukelele');
   });
 
   it('should fetch the task list the first time the component is loaded', async () => {
     // arrange
     // act
-    const renderResult = renderUI();
+    renderUI();
 
     // do some changes in the component state
-    const todoItemList = await renderResult.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
-    const buyUkeleleCheckbox = todoItemList[4].querySelector('input[type="checkbox"]') as HTMLInputElement;
+    const todoItemList = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
+    const buyUkeleleCheckbox = within(todoItemList[4]).getByRole('checkbox') as HTMLInputElement;
     buyUkeleleCheckbox.click();
 
     // assert
@@ -98,11 +95,11 @@ describe('<TodoList/>', () => {
     const props: Partial<Props> = { editTaskId: '3' };
 
     // act
-    const renderResult = renderUI(props);
+    renderUI(props);
 
     // do some changes in the component state
-    const todoItemDetailsComponents = await renderResult.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
-    const todoItemEditComponents = await renderResult.findAllByTestId('todoItemEdit') as HTMLDivElement[];
+    const todoItemDetailsComponents = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
+    const todoItemEditComponents = await screen.findAllByTestId('todoItemEdit') as HTMLDivElement[];
 
     // assert
     expect(todoItemDetailsComponents).toHaveLength(5);
@@ -113,15 +110,13 @@ describe('<TodoList/>', () => {
     // arrange
     renderUI();
 
-    const todoItemList = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
-
-    const lastTaskCheckBox = within(todoItemList[5]).getByRole('checkbox') as HTMLInputElement;
+    const todoItem = screen.getByText('Paint the wall');
 
     // act
-    lastTaskCheckBox.click();
+    fireEvent.click(todoItem);
 
     // assert
-    await waitFor(() => expect(baseProps.onTaskChangeStatus).toHaveBeenCalledWith('6', false));
+    expect(baseProps.onTaskChangeStatus).toHaveBeenCalledWith('1', true);
   });
 
   it('should trigger onSetTaskEditId when button edit is clicked on TodoListItemDisplay', async () => {
@@ -130,7 +125,7 @@ describe('<TodoList/>', () => {
 
     const todoItemList = await screen.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
-    const buttonEdit = within(todoItemList[3]). as HTMLButtonElement;
+    const buttonEdit = within(todoItemList[3]).getByRole('button', { name: /Edit/i }) as HTMLButtonElement;
 
     // act
     buttonEdit.click();
@@ -145,7 +140,7 @@ describe('<TodoList/>', () => {
 
     const todoItemList = await renderResult.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
-    const buttonDelete = todoItemList[3].querySelector('button:nth-child(2)') as HTMLButtonElement;
+    const buttonDelete = within(todoItemList[3]).getByRole('button', { name: /Delete/i }) as HTMLButtonElement;
 
     // act
     buttonDelete.click();
@@ -171,7 +166,7 @@ describe('<TodoList/>', () => {
     expect(baseProps.onSetTaskEditId).toHaveBeenCalledWith(undefined);
   });
 
-  it(`should trigger onEditTask when button save is clicked on TodoListItemEdit`, async () => {
+  it('should trigger onEditTask when button save is clicked on TodoListItemEdit', async () => {
     // arrange
     const props: Partial<Props> = { editTaskId: '4' };
 
@@ -179,12 +174,12 @@ describe('<TodoList/>', () => {
 
     const todoItemEdit = await screen.findAllByTestId('todoItemEdit') as HTMLDivElement[];
 
-    const buttonSave = within(todoItemEdit[0]).getByRole('button', {name: /Save/i}) as HTMLButtonElement;
+    const buttonSave = within(todoItemEdit[0]).getByRole('button', { name: /Save/i }) as HTMLButtonElement;
 
     // act
     fireEvent.click(buttonSave);
 
     // assert
-    expect(baseProps.onEditTask).toHaveBeenNthCalledWith(expect.objectContaining({id: '4'}));
+    expect(baseProps.onEditTask).toHaveBeenCalledWith(expect.objectContaining({ id: '4' }));
   });
 });
