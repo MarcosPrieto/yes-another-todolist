@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 import * as actionTypes from '../../constants/redux-action-types.constants';
 
 // Store
-import { TaskActionPartial } from '../reducers/task.reducer';
-import * as action from './task.actions';
+import { TaskActionPartial } from '../../store/reducers/task.reducer';
+import * as action from '../../store/actions/task.actions';
 
 // Models
 import { Task } from '../../models/task.model';

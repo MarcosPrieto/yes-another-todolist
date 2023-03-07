@@ -172,10 +172,10 @@ describe('TodoList', () => {
       const buttonEdit = within(todoItemDetailsComponents[0]).getByTitle('Edit') satisfies HTMLButtonElement;
 
       // act
-      buttonEdit.click();
+      fireEvent.click(buttonEdit);
 
       // assert
-      waitFor(() => expect(todoItemDetailsComponents).toHaveLength(2));
+      expect(screen.getAllByTestId('todoItemDisplay')).toHaveLength(2);
       expect(todoItemEditComponents).toHaveLength(1);
     });
 
