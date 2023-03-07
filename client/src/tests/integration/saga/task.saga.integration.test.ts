@@ -6,7 +6,7 @@ import { combineReducers } from 'redux';
 import { expectSaga } from 'redux-saga-test-plan';
 
 // Fixtures
-import * as apiTasks from '../../fixtures/apiTasks.json';
+import apiTasks from '../../fixtures/apiTasks.json';
 
 // State
 import { RootState } from '../../../store/models/rootState.model';
@@ -53,7 +53,7 @@ describe('redux saga - integration - task', () => {
   beforeEach(() => {
     mockInitialState = {
       task: taskReducer.taskInitialState,
-    } satisfies RootState;
+    } as RootState;
 
     rootReducer = combineReducers({
       task: taskReducer.taskReducer,
@@ -69,8 +69,7 @@ describe('redux saga - integration - task', () => {
   describe('fetchTasksSaga', () => {
     it('should put fetchSucess when API response code is not an error', async () => {
       // arrange
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const apiTasksFromJson: Task[] = (apiTasks as any).default;
+      const apiTasksFromJson: Task[] = apiTasks;
       mockAxios.onGet().replyOnce(200, apiTasksFromJson);
 
       // act, assert
@@ -82,7 +81,7 @@ describe('redux saga - integration - task', () => {
         .not.put.actionType(TASK_FETCH_ERROR)
         .run()
         .then((result) => {
-          const stateTask = result.storeState.task satisfies taskReducer.TaskState;
+          const stateTask = result.storeState.task as taskReducer.TaskState;
           expect(stateTask.taskList).toHaveLength(6);
           expect(stateTask.taskList[0].id).toBe('1');
           expect(stateTask.taskList[0].displayName).toBe('Paint the wall');
@@ -107,8 +106,7 @@ describe('redux saga - integration - task', () => {
   describe('createTaskSaga', () => {
     it('should create a new Task when the API response code is not an error', async () => {
       // arrange
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const apiTasksFromJson: Task[] = (apiTasks as any).default;
+      const apiTasksFromJson: Task[] = apiTasks;
 
       const newTask: Task = {
         id: 'new',
@@ -148,7 +146,7 @@ describe('redux saga - integration - task', () => {
         });
     });
 
-    it('should put TASK_CREATE_ERROR when API response code is error', async () => {
+    it('should put TASK_ADD_ERROR when API response code is error', async () => {
       // arrange
       mockAxios.onPost().networkErrorOnce();
 
@@ -171,8 +169,7 @@ describe('redux saga - integration - task', () => {
   describe('changeStatusSaga', () => {
     it('should update a Task done value when the API response code is not an error', async () => {
       // arrange
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const apiTasksFromJson: Task[] = (apiTasks as any).default;
+      const apiTasksFromJson: Task[] = apiTasks;
 
       mockAxios.onPatch().replyOnce(200);
 
@@ -199,7 +196,7 @@ describe('redux saga - integration - task', () => {
         .not.put.actionType(TASK_CHANGE_STATUS_ERROR)
         .run()
         .then((result) => {
-          const stateTask = result.storeState.task satisfies taskReducer.TaskState;
+          const stateTask = result.storeState.task as taskReducer.TaskState;
           expect(stateTask.taskList[0].id).toBe('1');
           expect(stateTask.taskList[0].done).toBe(true);
         });
@@ -229,8 +226,7 @@ describe('redux saga - integration - task', () => {
   describe('editTaskSaga', () => {
     it('should update a Task when the API response code is not an error', async () => {
       // arrange
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const apiTasksFromJson: Task[] = (apiTasks as any).default;
+      const apiTasksFromJson: Task[] = apiTasks;
 
       mockAxios.onPatch().replyOnce(200);
 
@@ -261,13 +257,13 @@ describe('redux saga - integration - task', () => {
         .not.put.actionType(TASK_UPDATE_ERROR)
         .run()
         .then((result) => {
-          const stateTask = result.storeState.task satisfies taskReducer.TaskState;
+          const stateTask = result.storeState.task as taskReducer.TaskState;
           expect(stateTask.taskList[0].id).toBe('1');
           expect(stateTask.taskList[0].displayName).toBe('modified');
         });
     });
 
-    it('should put TASK_EDIT_ERROR when API response code is error', async () => {
+    it('should put TASK_UPDATE_ERROR when API response code is error', async () => {
       // arrange
       mockAxios.onPatch().networkErrorOnce();
 
@@ -297,9 +293,7 @@ describe('redux saga - integration - task', () => {
   describe('deleteTaskSaga', () => {
     it('should delete a Task when the API response code is not an error', async () => {
       // arrange
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const apiTasksFromJson: Task[] = (apiTasks as any).default;
+      const apiTasksFromJson: Task[] = apiTasks;
 
       mockAxios.onDelete().replyOnce(200);
 

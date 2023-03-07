@@ -4,7 +4,7 @@ import React from 'react';
 import { render, cleanup, screen, fireEvent, waitFor } from '@testing-library/react';
 
 // Components
-import Select  from '../../../../components/presentational/UI/Select/Select';
+import Select from '../../../../components/presentational/UI/Select/Select';
 
 type Option = {
   id: string;
@@ -23,7 +23,7 @@ describe('<Select/>', () => {
         { id: '0', text: 'Low' },
         { id: '1', text: 'Mid' },
         { id: '2', text: 'High' },
-      ] satisfies Option[],
+      ] as Option[],
       onSelect: vi.fn(),
       keyExtractor: (item: Option) => item.id,
       textExtractor: (item: Option) => item.text,

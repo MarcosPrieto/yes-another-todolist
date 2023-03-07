@@ -25,6 +25,7 @@ describe('<Button/>', () => {
         onClick={vi.fn()} />
     );
 
+    // wait for the icon to be loaded
     await wait(1000);
 
     const svg = container.querySelector('svg');
@@ -44,6 +45,7 @@ describe('<Button/>', () => {
         onClick={vi.fn()} />
     );
 
+    // wait for the icon to be loaded
     await wait(1000);
 
     const svg = container.querySelector('svg');

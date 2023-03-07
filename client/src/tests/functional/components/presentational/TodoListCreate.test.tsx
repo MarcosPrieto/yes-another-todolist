@@ -29,7 +29,7 @@ describe('<TodoListCreate/>', () => {
     // arrange
     renderUI();
 
-    const input = screen.getByRole('textbox') satisfies HTMLInputElement;
+    const input = screen.getByRole('textbox') as HTMLInputElement;
 
     // act
     userEvent.type(input, 'foo{enter}');
@@ -42,7 +42,7 @@ describe('<TodoListCreate/>', () => {
     // arrange
     renderUI();
 
-    const input = screen.getByRole('textbox') satisfies HTMLInputElement;
+    const input = screen.getByRole('textbox') as HTMLInputElement;
 
     fireEvent.change(input, { target: { value: 'foo' } });
 
@@ -51,7 +51,7 @@ describe('<TodoListCreate/>', () => {
     // act
     fireEvent.click(screen.getByText('Cancel'));
 
-    const updatedInput = screen.getByRole('textbox') satisfies HTMLInputElement;
+    const updatedInput = screen.getByRole('textbox') as HTMLInputElement;
 
     // assert
     expect(updatedInput.value).toBe('');
