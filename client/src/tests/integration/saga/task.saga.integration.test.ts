@@ -23,18 +23,18 @@ import {
   TASK_CHANGE_STATUS_ERROR,
   TASK_CHANGE_STATUS_START,
   TASK_CHANGE_STATUS_SUCCESS,
-  TASK_CREATE,
-  TASK_CREATE_ERROR,
-  TASK_CREATE_START,
-  TASK_CREATE_SUCCESS,
+  TASK_ADD,
+  TASK_ADD_ERROR,
+  TASK_ADD_START,
+  TASK_ADD_SUCCESS,
   TASK_DELETE,
   TASK_DELETE_ERROR,
   TASK_DELETE_START,
   TASK_DELETE_SUCCESS,
-  TASK_EDIT,
-  TASK_EDIT_ERROR,
-  TASK_EDIT_START,
-  TASK_EDIT_SUCCESS,
+  TASK_UPDATE,
+  TASK_UPDATE_ERROR,
+  TASK_UPDATE_START,
+  TASK_UPDATE_SUCCESS,
   TASK_FETCH_ERROR,
   TASK_FETCH_START,
   TASK_FETCH_SUCCESS,
@@ -53,7 +53,7 @@ describe('redux saga - integration - task', () => {
   beforeEach(() => {
     mockInitialState = {
       task: taskReducer.taskInitialState,
-    } as RootState;
+    } satisfies RootState;
 
     rootReducer = combineReducers({
       task: taskReducer.taskReducer,
@@ -82,7 +82,7 @@ describe('redux saga - integration - task', () => {
         .not.put.actionType(TASK_FETCH_ERROR)
         .run()
         .then((result) => {
-          const stateTask = result.storeState.task as taskReducer.TaskState;
+          const stateTask = result.storeState.task satisfies taskReducer.TaskState;
           expect(stateTask.taskList).toHaveLength(6);
           expect(stateTask.taskList[0].id).toBe('1');
           expect(stateTask.taskList[0].displayName).toBe('Paint the wall');
@@ -128,7 +128,7 @@ describe('redux saga - integration - task', () => {
       };
 
       const taskAction = {
-        type: TASK_CREATE, // any task, doesn't matter
+        type: TASK_ADD, // any task, doesn't matter
         editTask: newTask,
       } as taskReducer.TaskAction;
 
@@ -136,9 +136,9 @@ describe('redux saga - integration - task', () => {
       return expectSaga(createTaskSaga, taskAction)
         .withReducer(rootReducer)
         .withState({ ...modifiedMockInitialState })
-        .put.actionType(TASK_CREATE_START)
-        .put.actionType(TASK_CREATE_SUCCESS)
-        .not.put.actionType(TASK_CREATE_ERROR)
+        .put.actionType(TASK_ADD_START)
+        .put.actionType(TASK_ADD_SUCCESS)
+        .not.put.actionType(TASK_ADD_ERROR)
         .run()
         .then((result) => {
           const stateTask = result.storeState.task as taskReducer.TaskState;
@@ -153,7 +153,7 @@ describe('redux saga - integration - task', () => {
       mockAxios.onPost().networkErrorOnce();
 
       const taskAction = {
-        type: TASK_CREATE, // any task, doesn't matter
+        type: TASK_ADD, // any task, doesn't matter
         editTask: {},
       } as taskReducer.TaskAction;
 
@@ -161,9 +161,9 @@ describe('redux saga - integration - task', () => {
       return expectSaga(createTaskSaga, taskAction)
         .withReducer(rootReducer)
         .withState({ ...mockInitialState })
-        .put.actionType(TASK_CREATE_START)
-        .not.put.actionType(TASK_CREATE_SUCCESS)
-        .put.actionType(TASK_CREATE_ERROR)
+        .put.actionType(TASK_ADD_START)
+        .not.put.actionType(TASK_ADD_SUCCESS)
+        .put.actionType(TASK_ADD_ERROR)
         .run();
     });
   });
@@ -199,7 +199,7 @@ describe('redux saga - integration - task', () => {
         .not.put.actionType(TASK_CHANGE_STATUS_ERROR)
         .run()
         .then((result) => {
-          const stateTask = result.storeState.task as taskReducer.TaskState;
+          const stateTask = result.storeState.task satisfies taskReducer.TaskState;
           expect(stateTask.taskList[0].id).toBe('1');
           expect(stateTask.taskList[0].done).toBe(true);
         });
@@ -248,7 +248,7 @@ describe('redux saga - integration - task', () => {
       };
 
       const taskAction = {
-        type: TASK_EDIT, // any task, doesn't matter
+        type: TASK_UPDATE, // any task, doesn't matter
         editTask
       } as taskReducer.TaskAction;
 
@@ -256,12 +256,12 @@ describe('redux saga - integration - task', () => {
       return expectSaga(editTaskSaga, taskAction)
         .withReducer(rootReducer)
         .withState({ ...modifiedMockInitialState })
-        .put.actionType(TASK_EDIT_START)
-        .put.actionType(TASK_EDIT_SUCCESS)
-        .not.put.actionType(TASK_EDIT_ERROR)
+        .put.actionType(TASK_UPDATE_START)
+        .put.actionType(TASK_UPDATE_SUCCESS)
+        .not.put.actionType(TASK_UPDATE_ERROR)
         .run()
         .then((result) => {
-          const stateTask = result.storeState.task as taskReducer.TaskState;
+          const stateTask = result.storeState.task satisfies taskReducer.TaskState;
           expect(stateTask.taskList[0].id).toBe('1');
           expect(stateTask.taskList[0].displayName).toBe('modified');
         });
@@ -279,7 +279,7 @@ describe('redux saga - integration - task', () => {
       };
 
       const taskAction = {
-        type: TASK_EDIT, // any task, doesn't matter
+        type: TASK_UPDATE, // any task, doesn't matter
         editTask
       } as taskReducer.TaskAction;
 
@@ -287,9 +287,9 @@ describe('redux saga - integration - task', () => {
       return expectSaga(editTaskSaga, taskAction)
         .withReducer(rootReducer)
         .withState({ ...mockInitialState })
-        .put.actionType(TASK_EDIT_START)
-        .not.put.actionType(TASK_EDIT_SUCCESS)
-        .put.actionType(TASK_EDIT_ERROR)
+        .put.actionType(TASK_UPDATE_START)
+        .not.put.actionType(TASK_UPDATE_SUCCESS)
+        .put.actionType(TASK_UPDATE_ERROR)
         .run();
     });
   });

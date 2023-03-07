@@ -35,7 +35,7 @@ describe(`<TodoListItemDisplay/>`, () => {
     const props: Partial<Props> = { taskDone: false };
 
     renderUI(props);
-    const checkbox = screen.getByRole('checkbox') as HTMLInputElement;
+    const checkbox = screen.getByRole('checkbox') satisfies HTMLInputElement;
 
     // act
     fireEvent.click(checkbox);
@@ -47,7 +47,7 @@ describe(`<TodoListItemDisplay/>`, () => {
   it(`should trigger onSetEdit when the edit button is clicked`, () => {
     // arrange
     renderUI();
-    const buttonEdit = screen.getByText('Edit') as HTMLButtonElement;
+    const buttonEdit = screen.getByTitle('Edit') as HTMLButtonElement;
 
     expect(baseProps.onSetEdit).toHaveBeenCalledTimes(0);
 
@@ -61,7 +61,7 @@ describe(`<TodoListItemDisplay/>`, () => {
   it(`should trigger onDelete when the edit button is clicked`, () => {
     // arrange
     renderUI();
-    const buttonDelete = screen.getByText('Delete') as HTMLButtonElement;
+    const buttonDelete = screen.getByTitle('Delete') satisfies HTMLButtonElement;
 
     expect(baseProps.onDelete).toHaveBeenCalledTimes(0);
 
