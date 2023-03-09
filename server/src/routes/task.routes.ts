@@ -11,10 +11,10 @@ router.get('/', getAllTasks);
 // /task/ -> POST
 router.post('/', createTask);
 
-// /task/ -> PATCH
-router.patch('/', updateTask);
+// /task/ -> PUT
+router.put('/', updateTask);
 
-// /task/:id/updateStatus -> PATCH
+// /task/:id/ -> PATCH
 router.patch('/:id', updateTaskStatus);
 
 // /task/ -> DELETE

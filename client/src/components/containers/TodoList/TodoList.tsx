@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
@@ -38,20 +38,23 @@ export const TodoList: React.FC<Props> = ({ initialTaskList, onFetchTasks, onCha
   const [editTaskId, setEditTaskId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
+    console.log('fetched tasks');
     onFetchTasks();
   }, []);
 
   useEffect(() => {
-    setTaskList(initialTaskList);
+    if (taskList.length === 0) {
+      setTaskList(initialTaskList);
+    }
   }, [initialTaskList]);
 
-  const getTasks = useCallback((done: boolean) => {
+  const getTasks = (done: boolean) => {
     return taskList
       .filter((task) => task.done === done)
       .sort((taskA, taskB) =>
         (taskA.priority - taskB.priority)
       );
-  }, [taskList]);
+  };
 
   const taskChangeStatusHandler = (taskId: string, done: boolean) => {
     setTaskList((tasks) => [...tasks].map((task) => {
@@ -84,7 +87,7 @@ export const TodoList: React.FC<Props> = ({ initialTaskList, onFetchTasks, onCha
   };
 
   const addTaskHandler = (newTask: Task) => {
-    setTaskList([...taskList, newTask]);
+    setTaskList((tasks) => [...tasks, newTask]);
     onAddTask(newTask);
   };
 
