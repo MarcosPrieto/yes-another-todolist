@@ -38,7 +38,6 @@ export const TodoList: React.FC<Props> = ({ initialTaskList, onFetchTasks, onCha
   const [editTaskId, setEditTaskId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    console.log('fetched tasks');
     onFetchTasks();
   }, []);
 
