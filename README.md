@@ -129,7 +129,7 @@ Is Redux needed for this project? Not really ;).
 
 - [react.js](https://reactjs.org/): javascript library for building user interfaces.
 
-### build tool
+#### build tool
 
 - [vite](https://vitejs.dev/).
 
