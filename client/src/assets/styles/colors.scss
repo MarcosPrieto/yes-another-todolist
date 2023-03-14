@@ -3,8 +3,8 @@ $secondary-color: #ff6392;
 $tertiary-color: #98ce00;
 
 $gray-light: #e6e6ea;
-$gray-dark: darken(#e6e6ea, 30%);
-$gray-darker: darken($gray-dark, 30%);
+$gray: darken($gray-light, 30%);
+$gray-darker: darken($gray, 30%);
 
 $white: #fff;
 $ghost-white: #f4f4f8;
