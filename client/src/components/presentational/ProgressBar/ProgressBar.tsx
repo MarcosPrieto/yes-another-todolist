@@ -10,7 +10,7 @@ type Props = React.HTMLAttributes<HTMLDivElement>;
 
 const ProgressBar: React.FC<Props> = ({ ...otherProps }: Props) => {
   
-  const progress = useTaskStore(getPercentageCompletedTasks) ?? 0;
+  const progress = useTaskStore(getPercentageCompletedTasks);
 
   const number = useSpring({
     from: { number: 0 },
