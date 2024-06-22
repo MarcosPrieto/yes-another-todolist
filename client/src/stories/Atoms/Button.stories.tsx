@@ -5,7 +5,7 @@ import { Story, Meta } from '@storybook/react/types-6-0';
 import ThemeDecorator from '../../../.storybook/decorators/ThemeDecorator';
 
 // Components
-import { Button } from '../../components/presentational/UI/Button/Button';
+import Button from '../../components/presentational/UI/Button/Button';
 
 export default {
   title: 'Atoms/Button',
@@ -22,12 +22,4 @@ ButtonDefault.args = {
   displayText: 'Some text',
   buttonStyle: 'add',
   iconName: 'material-symbols:save',
-};
-
-export const ButtonIcon = Template.bind({});
-ButtonIcon.args = {
-  buttonStyle: 'add',
-  buttonType: 'icon',
-  iconName: 'material-symbols:save',
-  displayText: 'Save',
 };

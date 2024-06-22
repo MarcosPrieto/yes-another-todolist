@@ -1,8 +1,9 @@
-import { compose } from 'redux';
-
 declare global {
   interface Window {
-    Cypress: unknown;
-    __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: typeof compose;
+    Cypress?: Cypress.Cypress;
   }
+}
+
+declare module "react/jsx-runtime" {
+  export default any;
 }

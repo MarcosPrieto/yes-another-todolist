@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import  { Icon } from '@iconify/react';
 
 // Styles
@@ -23,27 +23,54 @@ type StateCounterProps = {
 type Props = StateProps & (StateNoCounterProps | StateCounterProps);
 
 const TodoListCategory = ({ category, displayCount = true, itemCount, initialShowList = true, children }: Props) => {
-  const [showList, setShowList] = useState<boolean>(true);
+  const [showList, setShowList] = useState<boolean>(initialShowList);
 
-  const capitalizeCategory = useCallback(() => {
+  const capitalizeCategory = () => {
     return category.charAt(0).toUpperCase() + category.slice(1);
-  }, [category]);
-
-  useEffect(() => {
-    setShowList(initialShowList);
-  }, [initialShowList]);
+  };
 
   const toggleShowListHandler = () => {
+    if (itemCount === 0) return;
     setShowList((prevState) => !prevState);
+  };
+
+  const keyDownHandler = (e: React.KeyboardEvent) => {
+    if (itemCount === 0) {
+      return;
+    }
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      toggleShowListHandler();
+    }
+
+    if (e.key === 'Escape' || e.key === 'ArrowUp') {
+      setShowList(false);
+    }
+
+    if (e.key === 'ArrowDown') {
+      setShowList(true);
+    }
+  };
+
+  const iconStyle = {
+    transform: showList ? '' : 'rotate(-90deg)', 
+    transition: 'transform 170ms ease'
   };
 
   return (
     <section className={styles.todoListCategory}>
-      <h2 role="button" onClick={toggleShowListHandler}>
-        <Icon icon="material-symbols:keyboard-arrow-down-rounded" rotate={showList ? 4 : 3} />
-        <span>{capitalizeCategory()}</span>
-        <span>{displayCount ? ` (${itemCount})` : ''}</span>
-      </h2>
+      <div>
+        <div className={styles.todoListCategory__Text}
+          role="button"
+          tabIndex={0}
+          onClick={toggleShowListHandler}
+          onKeyDown={keyDownHandler}
+        >
+          <Icon icon="material-symbols:keyboard-arrow-down-rounded" rotate={4} style={iconStyle} />
+          <span>{capitalizeCategory()}</span>
+          <span>{displayCount ? ` (${itemCount})` : ''}</span>
+        </div>
+      </div>
       {
         showList && <div className={styles.todoListCategory__Items}>{children}</div>
       }

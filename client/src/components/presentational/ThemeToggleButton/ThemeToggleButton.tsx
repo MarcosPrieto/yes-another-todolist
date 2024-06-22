@@ -9,14 +9,15 @@ import { useTheme } from '../../hoc/ThemeProvider/ThemeProvider';
 const ThemeToggleButton = () => {
   const { theme, toggleTheme } = useTheme();
 
-  return (
-    <button
+  return (        
+    <button 
+      tabIndex={0}
       className={styles.themeToggleButton}
       onClick={toggleTheme}
       title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
     >
       <Icon icon={theme === 'dark' ? 'ph:moon-fill' : 'ph:sun-fill'} />
-      <span>{ theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+      <span className={styles.themeToggleButton__text}>{ theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
     </button>
   );
 };

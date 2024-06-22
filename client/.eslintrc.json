@@ -6,7 +6,9 @@
     "extends": [
         "eslint:recommended",
         "plugin:react/recommended",
-        "plugin:@typescript-eslint/recommended"
+        "plugin:@typescript-eslint/recommended",
+        "plugin:jsx-a11y/recommended",
+        "plugin:react-hooks/recommended"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
@@ -18,7 +20,8 @@
     },
     "plugins": [
         "react",
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "jsx-a11y"
     ],
     "rules": {
         "indent": [
@@ -26,8 +29,10 @@
             2
         ],
         "semi": [
-            "error",
-            "always"
+            1,
+            "always", {
+                "omitLastInOneLineBlock": true
+            }
         ],
         "react/react-in-jsx-scope": "off"
     }

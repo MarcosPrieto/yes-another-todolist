@@ -1,0 +1,29 @@
+@import 'src/assets/styles/colors.scss';
+@import 'src/assets/styles/variables.scss';
+
+a {
+  text-decoration: none;
+  overflow: hidden;
+
+  h1 {
+    display: flex;
+    align-items: stretch;
+    margin-bottom: -1rem;
+  }
+}
+
+.y {
+  color: $principal-color;
+}
+
+.a {
+  display: inline-block;
+  color: $secondary-color;
+  transform: rotate(15deg);
+  margin-left: -0.4rem;
+}
+
+.t {
+  color: $tertiary-color;
+  margin-left: -0.4rem;
+}

@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 // Styles
 import styles from './TodoListItemDisplay.module.scss';
 
 // Components
-import { Button } from '../../../UI/Button/Button';
+import Button from '../../../UI/Button/Button';
 import CheckBoxCrossed from '../../../../presentational/UI/CheckBoxCrossed/CheckBoxCrossed';
 
 type StateProps = {
   taskId: string;
   taskName: string;
-  taskDone: boolean;
+  initialTaskDone: boolean;
   taskPriorityColor?: string;
 }
 
@@ -22,33 +22,31 @@ type DispatchProps = {
 
 type Props = StateProps & DispatchProps;
 
-export const TodoListItemDisplay: React.FC<Props> = (props: Props) => {
-  const [taskDone, setTaskDone] = useState<boolean>(false);
-
-  useEffect(() =>  {
-    setTaskDone(props.taskDone);
-  }, [props.taskDone]);
+const TodoListItemDisplay: React.FC<Props> = ({taskId, taskName, initialTaskDone, taskPriorityColor, onTaskChangeStatus, onSetEdit, onDelete}: Props) => {
+  const [taskDone, setTaskDone] = useState<boolean>(initialTaskDone);
 
   const checkboxChangeHandler = (checked: boolean) => {
     setTaskDone(checked);
-    props.onTaskChangeStatus(props.taskId, checked);
+    onTaskChangeStatus(taskId, checked);
   };
 
   const editTaskHandler = () => {
-    props.onSetEdit(props.taskId);
+    onSetEdit(taskId);
   };
 
-  const deleteTaskHandler = () => {
-    props.onDelete(props.taskId);
+  const deleteTaskHandler = async () => {
+    onDelete(taskId);
   };
 
   return (
-    <div data-testid="todoItemDisplay" className={`task ${styles.itemDisplay}`}>
-      <CheckBoxCrossed onChange={checkboxChangeHandler} text={props.taskName} initialChecked={taskDone} color={props.taskPriorityColor} />
+    <div data-testid="todoItemDisplay" className={`themeWrapper themeHover task ${styles.itemDisplay}`}>
+      <CheckBoxCrossed onChange={checkboxChangeHandler} text={taskName} initialChecked={taskDone} color={taskPriorityColor} />
       <div className={styles.itemDisplay__buttonGroup}>
-        <Button size="big" displayText="Edit" buttonStyle="default" onClick={editTaskHandler} buttonType="icon" iconName="material-symbols:edit" />
-        <Button size="big" displayText="Delete" buttonStyle="default" onClick={deleteTaskHandler} buttonType="icon" iconName="mdi:trash-can-outline" />
+        <Button size="big" displayText="Edit" buttonStyle="disabled" onClick={editTaskHandler} buttonType="icon" iconName="material-symbols:edit" />
+        <Button size="big" displayText="Delete" buttonStyle="disabled" onClick={deleteTaskHandler} buttonType="icon" iconName="mdi:trash-can-outline" />
       </div>
     </div>
   );
 };
+
+export default TodoListItemDisplay;

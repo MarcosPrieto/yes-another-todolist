@@ -3,9 +3,8 @@ import { Icon } from '@iconify/react';
 // Styles
 import './Button.scss';
 
-// Constants
-import { BUTTON_STYLE } from '../../../../constants/buttonStyles.constants';
-import { useCallback } from 'react';
+// Types
+import { BUTTON_SIZE, BUTTON_STYLE } from '../../../../typings/common.types';
 
 type CommonProps = {
   displayText: string;
@@ -16,10 +15,11 @@ type CommonProps = {
    * 'dismiss': to actions related to delete or cancel
    */
   buttonStyle: BUTTON_STYLE;
-  size: 'small' | 'medium' | 'big';
+  size: BUTTON_SIZE;
 
   /** the tooltip to display when the mouse is over the button */
   tooltip?: string;
+  className?: string;
 }
 
 type StateIconButtonProps = {
@@ -28,7 +28,12 @@ type StateIconButtonProps = {
 }
 
 type StateButtonProps = {
-  buttonType?: 'button';
+  buttonType?: 'solid';
+  iconName?: string;
+}
+
+type StateLinkTypeButtonProps = {
+  buttonType?: 'link';
   iconName?: string;
 }
 
@@ -36,11 +41,20 @@ type DispatchProps = {
   onClick: () => void;
 }
 
-type Props = (StateIconButtonProps | StateButtonProps) & CommonProps & DispatchProps;
+type Props = (StateIconButtonProps | StateButtonProps | StateLinkTypeButtonProps) & CommonProps & DispatchProps;
 
-export const Button: React.FC<Props> = ({displayText, buttonStyle, size = 'medium', buttonType = 'button', iconName, tooltip, onClick}: Props) => {
+const Button: React.FC<Props> = ({
+  displayText,
+  buttonStyle,
+  size = 'medium',
+  buttonType = 'solid',
+  iconName,
+  tooltip,
+  className,
+  onClick
+}: Props) => {
 
-  const getTooltip = useCallback(() => {
+  const getTooltip = () => {
     if (tooltip) {
       return tooltip;
     }
@@ -48,28 +62,19 @@ export const Button: React.FC<Props> = ({displayText, buttonStyle, size = 'mediu
       return displayText;
     }
     return '';
-  }, [tooltip, buttonType, displayText]);
-
-  const getClassNames = useCallback(() => {
-    let style = '';
-
-    if (buttonType === 'icon') {
-      style += 'button--icon';
-    } else {
-      style += `button--${buttonStyle}`;
-    }
-
-    style += ` button--${size}`;
-
-    return style;
-  }, [buttonType, buttonStyle, size]);
+  };
 
   return (
-    <button title={getTooltip()} className={getClassNames()} onClick={onClick}>
-      { buttonType === 'button' && (
+    <button
+      title={getTooltip()}
+      className={`button button--${buttonType} button--${buttonStyle} button--${size}${className ? ' ' + className : ''}`}
+      onClick={onClick}>
+      { (buttonType === 'solid' || buttonType === 'link') && (
         <span>{displayText}</span>
       )}
       {iconName && <Icon role="img" icon={iconName} />}
     </button>
   );
 };
+
+export default Button;

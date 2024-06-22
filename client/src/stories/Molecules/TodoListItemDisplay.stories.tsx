@@ -4,12 +4,12 @@ import { Story, Meta } from '@storybook/react/types-6-0';
 // Decorators
 import ThemeDecorator from '../../../.storybook/decorators/ThemeDecorator';
 
-import { TodoListItemDisplay } from '../../components/presentational/TodoList/TodoListItem/TodoListItemDisplay/TodoListItemDisplay';
+import TodoListItemDisplay from '../../components/presentational/TodoList/TodoListItem/TodoListItemDisplay/TodoListItemDisplay';
 
 export default {
   title: 'Molecules/Todo list item display',
   component: TodoListItemDisplay,
-  decorators: [ ThemeDecorator ]
+  decorators: [ThemeDecorator]
 } as Meta;
 
 type Props = React.ComponentProps<typeof TodoListItemDisplay>;
@@ -21,5 +21,5 @@ TodoListItemDisplayDefault.args = {
   taskId: '1',
   taskName: 'Paint the wall',
   taskPriorityColor: 'red',
-  taskDone: false,
+  initialTaskDone: false,
 };

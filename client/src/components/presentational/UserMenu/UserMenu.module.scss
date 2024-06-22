@@ -1,0 +1,48 @@
+@import 'src/assets/styles/variables';
+
+.userMenu {
+  background-color: inherit;
+  position: relative;
+  cursor: pointer;
+  display: block;
+
+  &__displayName {
+    display: block;
+  }
+
+  &__options {
+    width: 100%;
+    position: absolute;
+    z-index: $z-index-dropdown;
+    right: 0;
+    
+    &Content {
+      border-radius: 7px;
+      border-top: 0;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    &Separator {
+      height: 0.8rem;
+
+      @media screen and (max-width: $breakpoint-laptop) {
+        height: 0.55rem;
+      }
+
+      @media screen and (max-width: $breakpoint-mobile) {
+        height: 0.4rem;
+      }
+    }
+  }
+
+  &__option {
+    padding: 0.5rem;
+    display: flex;
+    gap: 1rem;
+
+    span {
+      white-space: nowrap;
+    }
+  }
+}

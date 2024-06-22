@@ -1,96 +1,214 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { Icon } from '@iconify/react';
 
 // Styles
 import styles from './Select.module.scss';
 
-type StateProps<T, I> = {
-  items: T[];
-  initialItem: I;
-}
+// Types
+import { SelectIndex, SelectProps } from './Select.types';
 
-type DispatchProps<T, I> = {
-  keyExtractor: (item: T) => I;
-  textExtractor: (item: T) => string;
-  renderItem: (item: T, ref?: React.RefObject<HTMLElement>) => React.ReactNode;
-  onSelect: (item: I) => void;
-}
+// Hooks
+import { useOutsideClick } from '../../../../hooks/useOutsideClick';
+import { useEscape } from '../../../../hooks/useEscape';
 
-type Index = React.Key | null | undefined;
+const Select = <Item, Key extends SelectIndex>({ items, initialItem, keyExtractor, textExtractor, onSelect, renderItem, ...otherProps }: SelectProps<Item, Key>) => {
+  const optionsId = useId();
 
-type Props<T, I> = StateProps<T, I> & DispatchProps<T, I> & Pick<React.HTMLAttributes<HTMLSelectElement>, 'className' | 'id'>;
-
-const Select = <T,I extends Index>({ items, initialItem, keyExtractor, textExtractor, onSelect, renderItem, ...otherProps }: Props<T, I>) => {
-  const selectRef = useRef(null);
+  const selectRef = useRef<HTMLDivElement>(null);
+  const optionsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [item, setItem] = useState<I>(initialItem);
+  const [selectedItem, setSelectedItem] = useState<Key>(initialItem);
+
+  /**
+   * Preselected item is used to highlight the item in the menu, for example when
+   * hovering over an item with the mouse or using the arrow keys to navigate.
+   * 
+   * Then, when it is selected, with a click or enter key, the preselected item
+   * is used as the selected item.
+   */
+  const [preselectedItem, setPreselectedItem] = useState<Key | undefined>(undefined);
+
+  useOutsideClick(selectRef, () => setMenuOpen(false));
+  useEscape(() => setMenuOpen(false));
+
+  /**
+   * Given an item from the items array, get the next item in the array.
+   */
+  const getNextItem = (item: Key) => {
+    const currentIndex = items.findIndex((i) => keyExtractor(i) === item);
+    const nextIndex = currentIndex + 1;
+    return items[nextIndex] || items[0];
+  };
+
+  /**
+   * Given an item from the items array, get the previous item in the array.
+   */
+  const getPrevItem = (item: Key) => {
+    const currentIndex = items.findIndex((i) => keyExtractor(i) === item);
+    const prevIndex = currentIndex - 1;
+    return items[prevIndex] || items[items.length - 1];
+  };
+
+  const selectNextItem = () => {
+    selectedItemChangeHandler(getNextItem(selectedItem));
+  };
+
+  const selectPrevItem = () => {
+    selectedItemChangeHandler(getPrevItem(selectedItem));
+  };
+
+  const preselectNextItem = () => {
+    const nextItem = preselectedItem !== undefined ? getNextItem(preselectedItem) : items[0];
+    setPreselectedItem(keyExtractor(nextItem));
+  };
+
+  const preselectPrevItem = () => {
+    const previousItem = preselectedItem !== undefined ? getPrevItem(preselectedItem) : items[0];
+    setPreselectedItem(keyExtractor(previousItem));
+  };
+
+  const getSelectedItem = () => {
+    return items.find((i) => keyExtractor(i) === selectedItem) as Item;
+  };
 
   const toggleMenuHandler = () => {
     setMenuOpen((open) => !open);
   };
 
-  const itemChangeHandler = (newSelectedItem: T) => {
+  const selectedItemChangeHandler = (newSelectedItem: Item) => {
     setMenuOpen(false);
     const newSelectedId = keyExtractor(newSelectedItem);
-    if (newSelectedId === item) {
+    if (newSelectedId === selectedItem) {
       return;
     }
-    setItem(newSelectedId);
+    setSelectedItem(newSelectedId);
     onSelect(newSelectedId);
   };
 
-  const keydownHandler = (e: KeyboardEvent) => {
+  const keyDownSelectHandler = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       setMenuOpen(false);
+      return;
+    }
+    if (e.key === 'Enter' || e.key === ' ') {
+      setMenuOpen(true);
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      selectNextItem();
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      selectPrevItem();
+      return;
     }
   };
 
-  const clickOutsideHandler = (e: MouseEvent) => {
-    if (selectRef.current && !(selectRef.current as any).contains(e.target)) {
+  const keyDownOptionHandler = (e: React.KeyboardEvent, item: Item) => {
+    if (e.key === 'Escape') {
       setMenuOpen(false);
+      return;
     }
+    if (e.key === 'Enter' || e.key === ' ') {
+      if (preselectedItem) {
+        const pi = items.find((i) => keyExtractor(i) === preselectedItem) as Item;
+        selectedItemChangeHandler(pi);
+        return;
+      }
+    }
+    if (e.key === 'Tab') {
+      if (e.shiftKey) {
+        if (keyExtractor(item) === keyExtractor(items[0])) {
+          setMenuOpen(false);
+          return;
+        }
+      }
+      if (keyExtractor(item) === keyExtractor(items[items.length - 1])) {
+        setMenuOpen(false);
+        return;
+      }
+    }
+
+    if (e.key === 'ArrowDown') {
+      preselectNextItem();
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      preselectPrevItem();
+      return;
+    }
+  };
+
+  const renderItemHandler = (item: Item) => {
+    return renderItem(item);
+  };
+
+  const renderSelectedItemHandler = () => {
+    const si = items.find((i) => keyExtractor(i) === selectedItem) as Item;
+    return renderItem(si);
   };
 
   useEffect(() => {
-    setItem(initialItem);
+    setSelectedItem(initialItem);
   }, [initialItem]);
 
   useEffect(() => {
-    document.addEventListener('keydown', keydownHandler, true);
-    document.addEventListener('click', clickOutsideHandler, true);
-    return () => {
-      document.removeEventListener('keydown', keydownHandler, true);
-      document.removeEventListener('click', clickOutsideHandler, true);
-    };
-  });
+    if (!menuOpen) {
+      setPreselectedItem(undefined);
+      return;
+    }
+    /** When menu opens, focus to the first element, in order
+     * to allow keyboard navigation with arrow keys and then
+     * select an option with Enter or Spacebar.
+     */
+    optionsRef.current[0]?.focus();
+  }, [menuOpen]);
 
-  const getSelectedItem = () => {
-    return items.find((i) => keyExtractor(i) === item) as T;
-  };
-
-  const renderSelectedItem = () => {
-    const selectedItem = items.find((i) => keyExtractor(i) === item) as T;
-    return renderItem(selectedItem);
-  };
-
-  const getSelectedTitle = () => {
-    return textExtractor(getSelectedItem());
+  const iconStyle = {
+    transform: menuOpen ? 'rotate(-180deg)' : '', 
+    transition: 'transform 170ms ease'
   };
 
   return (
-    <div ref={selectRef} id={otherProps.id} role="combobox" className={`${otherProps.className} ${styles.select}`}>
-      <div title={getSelectedTitle()} data-testid="select__selected" onClick={toggleMenuHandler} className={`select select__selected ${styles.select__selected}`}>
-        {renderSelectedItem()}
-        <Icon icon='material-symbols:keyboard-arrow-down-rounded' rotate={menuOpen ? 2 : 0} />
+    <div ref={selectRef}
+      id={otherProps.id}
+      role="combobox"
+      aria-expanded={menuOpen}
+      aria-controls={optionsId}
+      aria-labelledby={otherProps['aria-labelledby']}
+      className={`${otherProps.className} ${styles.select}`}
+    >
+      <div
+        role="button"
+        title={textExtractor(getSelectedItem())}
+        data-testid="select__selected"
+        tabIndex={0}
+        onClick={toggleMenuHandler}
+        onKeyDown={keyDownSelectHandler}
+        className={`select select__selected ${styles.select__selected}`}
+      >
+        {renderSelectedItemHandler()}
+        <Icon icon='material-symbols:keyboard-arrow-down-rounded' style={iconStyle} />
       </div>
       {
         items && items.length > 0 && menuOpen && (
-          <div data-testid="select__options" className={`select option ${styles.select__options}`}>
+          <div data-testid="select__options" className={`options themeBorder themeBg ${styles.select__options}`}>
             {
-              items.map((item) => (
-                <div role="option" className={styles.select__option} onClick={(_) => itemChangeHandler(item)} key={keyExtractor(item)}>
-                  {renderItem(item)}
+              items.map((item, index) => (
+                <div role="option"
+                  key={keyExtractor(item)}
+                  ref={(ref) => optionsRef.current[index] = ref}
+                  tabIndex={0}
+                  aria-selected={keyExtractor(item) === keyExtractor(getSelectedItem())}
+                  className={`option ${styles.select__option} ${keyExtractor(item) === preselectedItem ? 'preselected' : ''}`}
+                  onFocus={() => setPreselectedItem(keyExtractor(item))}
+                  onClick={() => selectedItemChangeHandler(item)}
+                  onKeyDown={(e) => keyDownOptionHandler(e, item)}
+                  onMouseEnter={() => setPreselectedItem(keyExtractor(item))}
+                  onMouseLeave={() => setPreselectedItem(undefined)}
+                >
+                  {renderItemHandler(item)}
                 </div>)
               )
             }

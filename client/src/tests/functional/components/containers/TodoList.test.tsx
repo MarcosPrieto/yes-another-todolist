@@ -1,51 +1,50 @@
-import React from 'react';
-import createSagaMiddleware from 'redux-saga';
-import { Provider } from 'react-redux';
-import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
+import { describe, it, vi, afterEach, expect, MockedFunction, beforeEach } from 'vitest';
 import { render, cleanup, screen, fireEvent, within, waitFor } from '@testing-library/react';
 
 // Models
 import { Task } from '../../../../models/task.model';
 
-// Redux
-import configureStore, { MockStoreEnhanced } from 'redux-mock-store';
-import * as taskReducer from '../../../../store/reducers/task.reducer';
-import { TASK_ADD, TASK_CHANGE_STATUS, TASK_DELETE, TASK_UPDATE } from '../../../../constants/redux-action-types.constants';
+// Store
+import { useTaskStore } from '../../../../store/task.store';
 
 // Components
-import ConnectedTodoList, { TodoList } from '../../../../components/containers/TodoList/TodoList';
+import TodoList from '../../../../components/containers/TodoList/TodoList';
 import userEvent from '@testing-library/user-event';
 
-const mockNavigate = vi.fn();
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
+vi.mock('../../../../store/task.store', () => ({
+  useTaskStore: vi.fn(),
+  getPercentageCompletedTasks: vi.fn().mockReturnValue(0),
 }));
+const mockTaskStore = useTaskStore as unknown as MockedFunction<typeof useTaskStore>;
 
-type Props = React.ComponentProps<typeof TodoList>;
+describe('<TodoList />', () => {
+  const initialTaskList: Task[] = [
+    { id: '1', displayName: 'Paint the wall', priority: 3, done: false },
+    { id: '2', displayName: 'Create a todoList demo application', priority: 0, done: true },
+    { id: '3', displayName: 'Learn Kubernetes', priority: 2, done: false },
+    { id: '4', displayName: 'Buy an ukelele', priority: 0, done: true },
+    { id: '5', displayName: 'Learn to play ukelele', priority: 1, done: false },
+    { id: '6', displayName: 'Sell ukelele', priority: 1, done: true },
+  ];
 
-describe('TodoList', () => {
-  let baseProps: Props;
+  const mockChangeTaskStatus = vi.fn();
+  const mockAddTask = vi.fn();
+  const mockDeleteTask = vi.fn();
+  const mockUpdateTask = vi.fn();
 
   beforeEach(() => {
-    baseProps = {
-      initialTaskList: [
-        { id: '1', displayName: 'Paint the wall', priority: 3, done: false },
-        { id: '2', displayName: 'Create a todoList demo application', priority: 0, done: true },
-        { id: '3', displayName: 'Learn Kubernetes', priority: 2, done: false },
-        { id: '4', displayName: 'Buy an ukelele', priority: 0, done: true },
-        { id: '5', displayName: 'Learn to play ukelele', priority: 1, done: false },
-        { id: '6', displayName: 'Sell ukelele', priority: 1, done: true },
-      ],
-      onFetchTasks: vi.fn(),
-      onChangeTaskStatus: vi.fn(),
-      onDeleteTask: vi.fn(),
-      onAddTask: vi.fn(),
-      onUpdateTask: vi.fn()
-    };
+    mockTaskStore.mockImplementation(() => ({
+      getPendingTasks: () => initialTaskList.filter((task) => !task.done).sort((a, b) => a.priority - b.priority),
+      getCompletedTasks: () => initialTaskList.filter((task) => task.done).sort((a, b) => a.priority - b.priority),
+      addTask: mockAddTask,
+      changeTaskStatus: mockChangeTaskStatus,
+      deleteTask: mockDeleteTask,
+      updateTask: mockUpdateTask,
+    }));
   });
 
-  const renderUI = (props: Partial<Props> = {}) => {
-    return render(<TodoList {...baseProps} {...props} />);
+  const renderUI = () => {
+    return render(<TodoList />);
   };
 
   afterEach(() => {
@@ -53,366 +52,106 @@ describe('TodoList', () => {
     cleanup();
   });
 
-  describe('<TodoList/>', () => {
+  it('should display pending tasks sorted by priority', () => {
+    // arrange, act
+    renderUI();
 
-    it('should display pending tasks sorted by priority', () => {
-      // arrange, act
-      renderUI();
+    const pendingSection = within(screen.getByText(/Pending/i).closest('section') as HTMLDivElement);
 
-      const pendingSection = within(screen.getByText(/Pending/i).closest('section') as HTMLDivElement);
+    const todoItemList = pendingSection.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
-      const todoItemList = pendingSection.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
-
-      // assert
-      expect(todoItemList[0].textContent).toContain('Learn to play ukelele');
-      expect(todoItemList[1].textContent).toContain('Learn Kubernetes');
-      expect(todoItemList[2].textContent).toContain('Paint the wall');
-    });
-
-    it('should display completed tasks sorted by priority', () => {
-      // arrange
-      renderUI();
-
-      const completedSection = within(screen.getByText(/Completed/i).closest('section') as HTMLDivElement);
-
-      const header = completedSection.getByText(/Completed/i) as HTMLHeadingElement;
-
-      // act
-      fireEvent.click(header);
-
-      const todoItemList = completedSection.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
-
-      // assert
-      expect(todoItemList[0].textContent).toContain('Create a todoList demo application');
-      expect(todoItemList[1].textContent).toContain('Buy an ukelele');
-      expect(todoItemList[2].textContent).toContain('Sell ukelele');
-    });
-
-    it('should move a task from pending to completed section when checked', () => {
-      // arrange
-      renderUI();
-
-      const pendingSection = within(screen.getByText(/Pending/i).closest('section') as HTMLDivElement);
-      const pendingSectionHeader = pendingSection.getByText(/Pending/i).closest('h2') as HTMLHeadingElement;
-
-      const completedSection = within(screen.getByText(/Completed/i).closest('section') as HTMLDivElement);
-      const completedSectionHeader = completedSection.getByText(/Completed/i).closest('h2') as HTMLHeadingElement;
-
-      expect(completedSectionHeader.textContent).toBe('Completed (3)');
-      expect(pendingSectionHeader.textContent).toBe('Pending (3)');
-
-      const pendingTasks = pendingSection.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
-
-      expect(pendingTasks[0].textContent).toContain('Learn to play ukelele');
-
-      const checkBox = within(pendingTasks[0]).getByRole('checkbox') as HTMLInputElement;
-
-      // act
-      fireEvent.click(checkBox);
-
-      fireEvent.click(completedSectionHeader);
-
-      // assert
-      expect(pendingSection.queryByText('Learn to play ukelele')).toBeNull();
-      expect(completedSection.queryByText('Learn to play ukelele')).toBeTruthy();
-      expect(completedSectionHeader.textContent).toBe('Completed (4)');
-      expect(pendingSectionHeader.textContent).toBe('Pending (2)');
-    });
-
-    it('should move a task from completed to pending section when checked', () => {
-      // arrange
-      renderUI();
-
-      const pendingSection = within(screen.getByText(/Pending/i).closest('section') as HTMLDivElement);
-      const pendingSectionHeader = pendingSection.getByText(/Pending/i).closest('h2') as HTMLHeadingElement;
-
-      const completedSection = within(screen.getByText(/Completed/i).closest('section') as HTMLDivElement);
-      const completedSectionHeader = completedSection.getByText(/Completed/i).closest('h2') as HTMLHeadingElement;
-
-      expect(completedSectionHeader.textContent).toBe('Completed (3)');
-      expect(pendingSectionHeader.textContent).toBe('Pending (3)');
-
-      fireEvent.click(completedSectionHeader);
-
-      const completedTasks = completedSection.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
-
-      expect(completedTasks[1].textContent).toContain('Buy an ukelele');
-
-      const checkBox = within(completedTasks[1]).getByRole('checkbox') as HTMLInputElement;
-
-      // act
-      fireEvent.click(checkBox);
-
-      // assert
-      expect(completedSection.queryByText('Buy an ukelele')).toBeNull();
-      expect(pendingSection.queryByText('Buy an ukelele')).toBeTruthy();
-      expect(completedSectionHeader.textContent).toBe('Completed (2)');
-      expect(pendingSectionHeader.textContent).toBe('Pending (4)');
-    });
-
-    it('should fetch the task list the first time the component is loaded', () => {
-      // arrange
-      // act
-      renderUI();
-
-      // assert
-      expect(baseProps.onFetchTasks).toHaveBeenCalledTimes(1);
-    });
-
-    it('should render a TodoListItemEdit when click on Edit in a task', () => {
-      // arrange
-      renderUI();
-
-      const todoItemDetailsComponents = screen.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
-      const todoItemEditComponents = screen.getAllByTestId('todoItemEdit') as HTMLDivElement[];
-
-      // assert
-      expect(todoItemDetailsComponents).toHaveLength(3);
-
-      const buttonEdit = within(todoItemDetailsComponents[0]).getByTitle('Edit') as HTMLButtonElement;
-
-      // act
-      fireEvent.click(buttonEdit);
-
-      // assert
-      expect(screen.getAllByTestId('todoItemDisplay')).toHaveLength(2);
-      expect(todoItemEditComponents).toHaveLength(1);
-    });
-
-    it('should trigger onTaskChangeStatus when a task is marked as done/undone', () => {
-      // arrange
-      renderUI();
-
-      const todoItemDetailsComponents = screen.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
-
-      const checkBox = within(todoItemDetailsComponents[0]).getByRole('checkbox') as HTMLInputElement;
-
-      // act
-      fireEvent.click(checkBox);
-
-      // assert
-      expect(baseProps.onChangeTaskStatus).toHaveBeenCalledWith('5', true);
-    });
-
-    it('should trigger onDelete when button delete is clicked on TodoListItemDisplay', () => {
-      // arrange
-      renderUI();
-
-      const todoItemDetailsComponents = screen.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
-
-      const buttonDelete = within(todoItemDetailsComponents[0]).getByTitle('Delete') as HTMLButtonElement;
-
-      // act
-      buttonDelete.click();
-
-      // assert
-      expect(baseProps.onDeleteTask).toHaveBeenCalledWith('5');
-    });
-
-    it('should trigger onAdd when a task is created', async () => {
-      // arrange
-      renderUI();
-
-      const editSection = screen.getByText(/Create/i).closest('section') as HTMLDivElement;
-
-      const input = within(editSection).getByRole('textbox') as HTMLInputElement;
-
-      // act
-      userEvent.type(input, 'New task name{enter}');
-
-      // assert
-      await waitFor(() => expect(baseProps.onAddTask).toHaveBeenCalledWith(expect.objectContaining({ displayName: 'New task name' })));
-    });
-
-    it('should trigger onUpdate when button Save is clicked on TodoListItemEdit', async () => {
-      // arrange
-      renderUI();
-
-      const pendingSection = within(screen.getByText(/Pending/i).closest('section') as HTMLDivElement);
-
-      const todoItemDetailsComponents = await pendingSection.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
-
-      const buttonEdit = within(todoItemDetailsComponents[0]).getByTitle('Edit') as HTMLButtonElement;
-
-      fireEvent.click(buttonEdit);
-
-      const todoItemEditComponents = await pendingSection.findAllByTestId('todoItemEdit') as HTMLDivElement[];
-
-      const input = within(todoItemEditComponents[0]).getByRole('textbox') as HTMLInputElement;
-
-      // act
-      userEvent.clear(input);
-      userEvent.type(input, 'New task name{enter}');
-
-      // assert
-      await waitFor(() => expect(baseProps.onUpdateTask).toHaveBeenCalledWith(expect.objectContaining({ id: '5' })));
-    });
-
-    it('should render a TodoListItemDisplay instead of TodoListItemEdit when Cancel button is clicked', () => {
-      // arrange
-      renderUI();
-
-      const pendingSection = within(screen.getByText(/Pending/i).closest('section') as HTMLDivElement);
-
-      const todoItemDetailsComponents = pendingSection.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
-
-      const buttonEdit = within(todoItemDetailsComponents[0]).getByTitle('Edit') as HTMLButtonElement;
-
-      fireEvent.click(buttonEdit);
-
-      const todoItemEditComponents = pendingSection.getAllByTestId('todoItemEdit') as HTMLDivElement[];
-
-      expect(todoItemEditComponents).toHaveLength(1);
-
-      const buttonCancel = within(todoItemEditComponents[0]).getByRole('button', { name: /Cancel/ }) as HTMLButtonElement;
-
-      // act
-      fireEvent.click(buttonCancel);
-
-      // assert
-      expect(pendingSection.queryAllByTestId('todoItemEdit')).toHaveLength(0);
-    });
+    // assert
+    expect(todoItemList[0].textContent).toContain('Learn to play ukelele');
+    expect(todoItemList[1].textContent).toContain('Learn Kubernetes');
+    expect(todoItemList[2].textContent).toContain('Paint the wall');
   });
 
-  describe('ConnectedTodoList', () => {
-    let store: MockStoreEnhanced<unknown, unknown>;
-    const middlewares = [createSagaMiddleware()];
-    const mockStore = configureStore(middlewares);
+  it('should display completed tasks sorted by priority', () => {
+    // arrange
+    renderUI();
 
-    const renderUI = (partialState: Partial<taskReducer.TaskState> = {}) => {
-      store = mockStore({
-        task: { ...taskReducer, ...partialState },
-      });
-      store.dispatch = vi.fn();
+    const completedSection = within(screen.getByText(/Completed/i).closest('section') as HTMLDivElement);
 
-      const component = <Provider store={store}>
-        <ConnectedTodoList />
-      </Provider>;
+    const header = completedSection.getByText(/Completed/i) as HTMLHeadingElement;
 
-      return render(component);
-    };
+    // act
+    fireEvent.click(header);
 
-    it('should call TASK_ADD when the save button is clicked creating a task', () => {
-      // arrange
-      vi.mock('uuid', () => ({ v4: () => '123456789' }));
+    const todoItemList = completedSection.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
-      const storeProps: Partial<taskReducer.TaskState> = {
-        taskList: baseProps.initialTaskList,
-      };
+    // assert
+    expect(todoItemList[0].textContent).toContain('Create a todoList demo application');
+    expect(todoItemList[1].textContent).toContain('Buy an ukelele');
+    expect(todoItemList[2].textContent).toContain('Sell ukelele');
+  });
 
-      renderUI(storeProps);
+  it('should trigger changeTaskStatus when a task is marked as done/undone', () => {
+    // arrange
+    renderUI();
 
-      const { getByRole } = within(screen.getByText('Create task').closest('section') as HTMLDivElement);
+    const todoItemDetailsComponents = screen.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
-      const todoNameInput = getByRole('textbox') as HTMLInputElement;
-      fireEvent.change(todoNameInput, { target: { value: 'foo' } });
+    const checkBox = within(todoItemDetailsComponents[0]).getByRole('checkbox') as HTMLInputElement;
 
-      const saveButton = getByRole('button', { name: /Save/i }) as HTMLButtonElement;
+    // act
+    fireEvent.click(checkBox);
 
-      // act
-      fireEvent.click(saveButton);
+    // assert
+    expect(mockChangeTaskStatus).toHaveBeenCalledWith('5', true);
+  });
 
-      const createdTask: Task = {
-        id: '123456789',
-        displayName: 'foo',
-        priority: 2,
-        done: false,
-      };
+  it('should trigger deleteTask when button delete is clicked on TodoListItemDisplay', () => {
+    // arrange
+    renderUI();
 
-      // assert
-      expect(store.dispatch).toHaveBeenCalledWith({
-        type: TASK_ADD,
-        editTask: createdTask,
-      } as taskReducer.TaskActionPartial);
-    });
+    const todoItemDetailsComponents = screen.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
-    it('should call TASK_UPDATE when the save button is clicked updating a task', () => {
-      // arrange
-      const storeProps: Partial<taskReducer.TaskState> = {
-        taskList: baseProps.initialTaskList,
-      };
+    const buttonDelete = within(todoItemDetailsComponents[0]).getByTitle('Delete') as HTMLButtonElement;
 
-      renderUI(storeProps);
+    // act
+    buttonDelete.click();
 
-      const pendingSection = within(screen.getByText(/Pending/i).closest('section') as HTMLDivElement);
+    // assert
+    expect(mockDeleteTask).toHaveBeenCalledWith('5');
+  });
 
-      const todoItemDetailsComponents = pendingSection.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
+  it('should trigger addTask when a task is created', () => {
+    // arrange
+    renderUI();
 
-      const buttonEdit = within(todoItemDetailsComponents[0]).getByTitle('Edit') as HTMLButtonElement;
+    const editSection = screen.getByText(/Create/i).closest('section') as HTMLDivElement;
 
-      fireEvent.click(buttonEdit);
+    const input = within(editSection).getByRole('textbox') as HTMLInputElement;
 
-      const todoItemEditComponents = pendingSection.getAllByTestId('todoItemEdit') as HTMLDivElement[];
+    // act
+    userEvent.type(input, 'New task name{enter}');
 
-      const todoNameInput = within(todoItemEditComponents[0]).getByRole('textbox') as HTMLInputElement;
-      fireEvent.change(todoNameInput, { target: { value: 'foo' } });
+    // assert
+    waitFor(() => expect(mockAddTask).toHaveBeenCalledWith(expect.objectContaining({ displayName: 'New task name' })));
+  });
 
-      const saveButton = within(todoItemEditComponents[0]).getByRole('button', { name: /Save/i }) as HTMLButtonElement;
+  it('should trigger updateTask when button Save is clicked on TodoListItemEdit', async () => {
+    // arrange
+    mockUpdateTask.mockImplementation(() => Promise.resolve('success'));
+    renderUI();
 
-      // act
-      fireEvent.click(saveButton);
+    const pendingSection = within(screen.getByText(/Pending/i).closest('section') as HTMLDivElement);
 
-      const createdTask: Task = {
-        id: '5',
-        displayName: 'foo',
-        priority: 1,
-        done: false,
-      };
+    const todoItemDetailsComponents = await pendingSection.findAllByTestId('todoItemDisplay') as HTMLDivElement[];
 
-      // assert
-      expect(store.dispatch).toHaveBeenCalledWith({
-        type: TASK_UPDATE,
-        editTask: createdTask,
-      } as taskReducer.TaskActionPartial);
-    });
+    const buttonEdit = within(todoItemDetailsComponents[0]).getByTitle('Edit') as HTMLButtonElement;
 
-    it('should call TASK_DELETE when the delete button is clicked', () => {
-      // arrange
-      const storeProps: Partial<taskReducer.TaskState> = {
-        taskList: baseProps.initialTaskList,
-      };
+    fireEvent.click(buttonEdit);
 
-      renderUI(storeProps);
+    const todoItemEditComponents = await pendingSection.findAllByTestId('todoItemEdit') as HTMLDivElement[];
 
-      const pendingSection = within(screen.getByText(/Pending/i).closest('section') as HTMLDivElement);
+    const input = within(todoItemEditComponents[0]).getByRole('textbox') as HTMLInputElement;
 
-      const todoItemDetailsComponents = pendingSection.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
+    // act
+    userEvent.clear(input);
+    userEvent.type(input, 'New task name{enter}');
 
-      const buttonDelete = within(todoItemDetailsComponents[0]).getByTitle('Delete') as HTMLButtonElement;
-
-      // act
-      fireEvent.click(buttonDelete);
-
-      // assert
-      expect(store.dispatch).toHaveBeenCalledWith({
-        type: TASK_DELETE,
-        taskId: '5',
-      } as taskReducer.TaskActionPartial);
-    });
-
-    it('should call TASK_CHANGE_STATUS when clicking on the task checkbox', () => {
-      // arrange
-      const storeProps: Partial<taskReducer.TaskState> = {
-        taskList: baseProps.initialTaskList,
-      };
-
-      renderUI(storeProps);
-
-      const pendingSection = within(screen.getByText(/Pending/i).closest('section') as HTMLDivElement);
-
-      const todoItemDetailsComponents = pendingSection.getAllByTestId('todoItemDisplay') as HTMLDivElement[];
-
-      const checkbox = within(todoItemDetailsComponents[0]).getByRole('checkbox') as HTMLButtonElement;
-
-      // act
-      fireEvent.click(checkbox);
-
-      // assert
-      expect(store.dispatch).toHaveBeenCalledWith({
-        type: TASK_CHANGE_STATUS,
-        taskId: '5',
-        done: true,
-      } as taskReducer.TaskActionPartial);
-    });
+    // assert
+    await waitFor(() => expect(mockUpdateTask).toHaveBeenCalledWith(expect.objectContaining({ id: '5' })));
   });
 });

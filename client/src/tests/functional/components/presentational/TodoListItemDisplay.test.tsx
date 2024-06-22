@@ -3,7 +3,7 @@ import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
 import { render, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 
 // Components
-import { TodoListItemDisplay } from '../../../../components/presentational/TodoList/TodoListItem/TodoListItemDisplay/TodoListItemDisplay';
+import TodoListItemDisplay from '../../../../components/presentational/TodoList/TodoListItem/TodoListItemDisplay/TodoListItemDisplay';
 
 type Props = React.ComponentProps<typeof TodoListItemDisplay>;
 
@@ -15,7 +15,7 @@ describe(`<TodoListItemDisplay/>`, () => {
       taskId: '1',
       taskName: 'Paint the wall',
       taskPriorityColor: 'red',
-      taskDone: false,
+      initialTaskDone: false,
       onTaskChangeStatus: vi.fn(),
       onSetEdit: vi.fn(),
       onDelete: vi.fn()
@@ -30,9 +30,9 @@ describe(`<TodoListItemDisplay/>`, () => {
     cleanup();
   });
 
-  it(`should trigger onTaskChangeStatus when the checkbox changes`, async () => {
+  it(`should trigger onTaskChangeStatus when the checkbox changes`, () => {
     // arrange
-    const props: Partial<Props> = { taskDone: false };
+    const props: Partial<Props> = { initialTaskDone: false };
 
     renderUI(props);
     const checkbox = screen.getByRole('checkbox') as HTMLInputElement;
@@ -41,7 +41,7 @@ describe(`<TodoListItemDisplay/>`, () => {
     fireEvent.click(checkbox);
 
     // assert
-    await waitFor(() => expect(baseProps.onTaskChangeStatus).toHaveBeenCalled());
+    waitFor(() => expect(baseProps.onTaskChangeStatus).toHaveBeenCalled());
   });
 
   it(`should trigger onSetEdit when the edit button is clicked`, () => {
